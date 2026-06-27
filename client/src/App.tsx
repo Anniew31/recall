@@ -18,7 +18,6 @@ function App() {
     const [isHost, setIsHost] = useState(false)
 
     useEffect(() => {
-
         socket.on('room_created', (data) => {
             setRoomCode(data.roomCode)
             setScreen('lobby')
@@ -40,6 +39,36 @@ function App() {
             socket.off('room_joined')
         }
     }, [])
+
+    useEffect(() => {
+        const saved = localStorage.getItem('recall_session')
+        if (!saved) return
+
+        const { playerName, roomCode, screen, isHost } = JSON.parse(saved)
+        setPlayerName(playerName)
+        setRoomCode(roomCode)
+        setScreen(screen)
+        setIsHost(isHost)
+
+        if (screen !== 'home') {
+            socket.on('connect', () => {
+                socket.emit('rejoin_room', { playerName, roomCode, isHost })
+            })
+        }
+    }, [])
+
+    useEffect(() => {
+        if (screen !== 'home') {
+            localStorage.setItem('recall_session', JSON.stringify({
+                playerName,
+                roomCode,
+                screen,
+                isHost
+            }))
+        } else {
+            localStorage.removeItem('recall_session')
+        }
+    }, [screen, playerName, roomCode, isHost])
 
     const handleJoinRoom = (roomCodeInput: string) => {
         socket.emit('join_room', { playerName, roomCode: roomCodeInput.toUpperCase() })

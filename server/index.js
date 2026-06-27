@@ -14,8 +14,6 @@ const io = new Server(httpServer, {
 const rooms = {}
 
 io.on('connection', (socket) => {
-    console.log('a user connected:', socket.id)
-
     socket.on('create_room', (data) => {
         const roomCode = Math.random().toString(36).substring(2, 7).toUpperCase()
         rooms[roomCode] = { players: [] }
@@ -33,7 +31,6 @@ io.on('connection', (socket) => {
         socket.join(data.roomCode)
         rooms[data.roomCode].players.push({ id: socket.id, name: data.playerName, isHost: false })
         io.to(data.roomCode).emit('player_list_updated', rooms[data.roomCode].players)
-        console.log('emitting room_joined to socket:', socket.id)
         socket.emit('room_joined', { roomCode: data.roomCode })
     })
 
@@ -45,6 +42,18 @@ io.on('connection', (socket) => {
                 io.to(roomCode).emit('player_list_updated', rooms[roomCode].players)
             }
         }
+    })
+
+    socket.on('rejoin_room', (data) => {
+        if (!(data.roomCode in rooms)) return
+        const existingPlayer = rooms[data.roomCode].players.find(p => p.name === data.playerName)
+        if (existingPlayer) {
+            existingPlayer.id = socket.id
+        } else {
+            rooms[data.roomCode].players.push({ id: socket.id, name: data.playerName, isHost: data.isHost })
+        }
+        socket.join(data.roomCode)
+        io.to(data.roomCode).emit('player_list_updated', rooms[data.roomCode].players)
     })
 })
 
