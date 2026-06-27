@@ -33,6 +33,8 @@ io.on('connection', (socket) => {
         socket.join(data.roomCode)
         rooms[data.roomCode].players.push({ id: socket.id, name: data.playerName, isHost: false })
         io.to(data.roomCode).emit('player_list_updated', rooms[data.roomCode].players)
+        console.log('emitting room_joined to socket:', socket.id)
+        socket.emit('room_joined', { roomCode: data.roomCode })
     })
 
     socket.on('disconnect', () => {

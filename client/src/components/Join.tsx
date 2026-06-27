@@ -1,28 +1,35 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import socket from "../socket";
 import Error from "./Error"
 
 type JoinProps = {
     playerName: string
     setScreen: (screen: 'home' | 'join' | 'lobby') => void
+    onJoin: (roomCode: string) => void
 }
 
-export default function Join({playerName, setScreen}: JoinProps) {
+export default function Join({playerName, setScreen, onJoin}: JoinProps) {
     const [roomCode, setRoomCode] = useState('')
     const [error, setError] = useState('')
 
     const handleJoin = () => {
         if (!roomCode.trim()) return
-        socket.emit('join_room', { playerName, roomCode: roomCode.toUpperCase() })
+        onJoin(roomCode);
     }
 
-    socket.on('error', (data) => {
-        setError(data.message)
-    })
+    useEffect(() => {
+        socket.on('error', (data) => {
+            setError(data.message)
+        })
+
+        return () => {
+            socket.off('error')
+        }
+    }, [])
 
     return (
         <main className="min-h-screen w-full flex flex-col items-center justify-center gap-10 px-4">
-              {error && <Error message={error} onClose={() => setError('')} />}
+            {error && <Error message={error} onClose={() => setError('')} />}
             <div className="text-center pt-4">
                 <h1 className="logo-title">RECALL</h1>
                 <p className="logo-subtitle">Study together. Compete together.</p>
