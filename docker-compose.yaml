@@ -1,0 +1,35 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_USER: recall
+      POSTGRES_PASSWORD: recall
+      POSTGRES_DB: recall
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  server:
+    build: ./server
+    ports:
+      - "3001:3001"
+    depends_on:
+      - postgres
+    environment:
+      DATABASE_URL: postgresql://recall:recall@postgres:5432/recall
+
+  python-service:
+    build: ./python-service
+    ports:
+      - "8000:8000"
+    depends_on:
+      - postgres
+
+  client:
+    build: ./client
+    ports:
+      - "5173:5173"
+
+volumes:
+  postgres_data:
