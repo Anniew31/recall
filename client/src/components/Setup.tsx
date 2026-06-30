@@ -23,9 +23,36 @@ export default function Setup({isHost, roomCode}: SetupProps) {
         }
     }, [])
 
-    const handleSubmit = async (e: React.SubmitEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
+        if (!file) return
+
         setIsProcessing(true)
+        try {
+            const formData = new FormData()
+            formData.append("file", file)
+
+            const res = await fetch(`http://localhost:8000/extract-text`, {
+                method: "POST",
+                body: formData,
+            })
+
+            if (!res.ok) {
+                throw new Error("Failed to extract text from PDF")
+            }
+
+            const data = await res.json()
+
+            socket.emit('setup_completed', {
+                roomCode,
+                topic,
+                questionCount,
+                notesText: data.text
+            })
+        } catch (err) {
+            setError("Something went wrong processing your notes. Please try again.")
+            setIsProcessing(false)
+        }
     }
 
     if (isHost) {

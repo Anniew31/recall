@@ -61,7 +61,14 @@ io.on('connection', (socket) => {
     })
 
     socket.on('setup_completed', (data) => {
-        io.to(data.roomCode).emit('setup_completed')
+        rooms[data.roomCode].topic = data.topic
+        rooms[data.roomCode].questionCount = data.questionCount
+        rooms[data.roomCode].notesText = data.notesText
+
+        io.to(data.roomCode).emit('setup_completed', {
+            topic: rooms[data.roomCode].topic,
+            questionCount: rooms[data.roomCode].questionCount
+        })
     })
 })
 
