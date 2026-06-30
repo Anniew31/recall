@@ -3,6 +3,7 @@ import socket from "./socket"
 import Home from "./components/Home"
 import Join from "./components/Join"
 import Lobby from "./components/Lobby"
+import Setup from "./components/Setup"
 
 type Player = {
     id: string
@@ -11,7 +12,7 @@ type Player = {
 }
 
 function App() {
-    const [screen, setScreen] = useState<'home' | 'join' | 'lobby'>('home')
+    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup'>('home')
     const [playerName, setPlayerName] = useState('')
     const [roomCode, setRoomCode] = useState('')
     const [players, setPlayers] = useState<Player[]>([])
@@ -33,10 +34,20 @@ function App() {
             setScreen('lobby')
         })
 
+        socket.on('game_setup_started', () => {
+            setScreen('setup')
+        })
+
+        socket.on('setup_completed', () => {
+            setScreen('question_setup')
+        })
+
         return () => {
             socket.off('room_created')
             socket.off('player_list_updated')
             socket.off('room_joined')
+            socket.off('game_setup_started')
+            socket.off('setup_completed')
         }
     }, [])
 
@@ -74,13 +85,24 @@ function App() {
         socket.emit('join_room', { playerName, roomCode: roomCodeInput.toUpperCase() })
     }
 
+    const handleStartGame = (roomCodeInput: string) => {
+        socket.emit('game_setup_started', {roomCode: roomCodeInput.toUpperCase() })
+    }
+
     if (screen === 'home') return (
         <Home playerName={playerName} setPlayerName={setPlayerName} setScreen={setScreen} />
     )
     if (screen === 'join') return (
         <Join playerName={playerName} setScreen={setScreen} onJoin={handleJoinRoom}></Join>
     )
-    return (<Lobby players={players} roomCode={roomCode} isHost={isHost}></Lobby>)
+    if (screen === 'lobby') return (
+        <Lobby players={players} roomCode={roomCode} isHost={isHost} onStart={handleStartGame}></Lobby>
+    )
+    if (screen === 'setup') return (
+        <Setup isHost={isHost} roomCode={roomCode}></Setup>
+    )
+    if (screen === 'question_setup') return <div>question setup</div>
+    return null
 }
 
 export default App

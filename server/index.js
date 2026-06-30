@@ -55,6 +55,14 @@ io.on('connection', (socket) => {
         socket.join(data.roomCode)
         io.to(data.roomCode).emit('player_list_updated', rooms[data.roomCode].players)
     })
+
+    socket.on('game_setup_started', (data) => {
+        io.to(data.roomCode).emit('game_setup_started')
+    })
+
+    socket.on('setup_completed', (data) => {
+        io.to(data.roomCode).emit('setup_completed')
+    })
 })
 
 httpServer.listen(3001, () => {

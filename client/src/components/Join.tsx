@@ -4,7 +4,7 @@ import Error from "./Error"
 
 type JoinProps = {
     playerName: string
-    setScreen: (screen: 'home' | 'join' | 'lobby') => void
+    setScreen: (screen: 'home' | 'join' | 'lobby' | 'setup' | 'question_setup') => void
     onJoin: (roomCode: string) => void
 }
 

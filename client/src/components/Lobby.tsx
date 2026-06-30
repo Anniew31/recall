@@ -11,11 +11,12 @@ type LobbyProps = {
     players: Player[]
     roomCode: string
     isHost: boolean
+    onStart: (roomCode: string) => void
 }
 
 const AVATAR_COLORS = ['#4c1d95', '#10b981', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
 
-export default function Lobby({players, roomCode, isHost}: LobbyProps) {
+export default function Lobby({players, roomCode, isHost, onStart }: LobbyProps) {
     const [copied, setCopied] = useState(false)
     const [editingName, setEditingName] = useState(false)
     const [nameInput, setNameInput] = useState('')
@@ -25,6 +26,11 @@ export default function Lobby({players, roomCode, isHost}: LobbyProps) {
         navigator.clipboard.writeText(roomCode)
         setCopied(true)
         setTimeout(() => setCopied(false), 2000)
+    }
+
+    const handleStartGame = () => {
+        if (!roomCode.trim()) return
+        onStart(roomCode);
     }
 
     return (
@@ -86,7 +92,7 @@ export default function Lobby({players, roomCode, isHost}: LobbyProps) {
             {/* Bottom bar */}
             <div className="lobby-bottom-bar">
                 {isHost && (
-                    <button className="btn-start">🚀 Start Game</button>
+                    <button className="btn-start" onClick={() => handleStartGame()}>🚀 Start Game</button>
                 )}
                 {!isHost && (
                     <div className="flex flex-1 items-center justify-center">
