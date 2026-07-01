@@ -25,7 +25,7 @@ export default function Setup({isHost, roomCode, topic, setTopic, questionCount,
         }
     }, [])
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.SubmitEvent<HTMLFormElement>) => {
         e.preventDefault()
         if (!topic.trim() || !questionCount || !file) {
             setError("Please fill out all setup parameters and upload a pdf before launching.")

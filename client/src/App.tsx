@@ -4,6 +4,7 @@ import Home from "./components/Home"
 import Join from "./components/Join"
 import Lobby from "./components/Lobby"
 import Setup from "./components/Setup"
+import QuestionSetup from "./components/Question-Setup"
 
 type Player = {
     id: string
@@ -12,7 +13,7 @@ type Player = {
 }
 
 function App() {
-    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup'>('home')
+    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'game' >('home')
     const [playerName, setPlayerName] = useState('')
     const [roomCode, setRoomCode] = useState('')
     const [players, setPlayers] = useState<Player[]>([])
@@ -53,12 +54,17 @@ function App() {
             setScreen('question_setup')
         })
 
+        socket.on('all_questions_ready', (data) => {
+            setScreen('game')
+        })
+
         return () => {
             socket.off('room_created')
             socket.off('player_list_updated')
             socket.off('room_joined')
             socket.off('game_setup_started')
             socket.off('setup_completed')
+            socket.off('game')
         }
     }, [])
 
@@ -126,12 +132,13 @@ function App() {
         />
     )
     if (screen === 'question_setup') return (
-        <div>
-            <h1>Question Setup Screen Placeholder</h1>
-            <p>Topic: {topic}</p>
-            <p>Questions Needed: {questionCount}</p>
-            <p>Has Notes Loaded: {notesText ? "Yes" : "No"}</p>
-        </div>
+        <QuestionSetup
+            questionCount={questionCount}
+            topic={topic}
+            notesText={notesText}
+            playerName={playerName}
+            roomCode={roomCode}
+        />
     )
     return null
 }
