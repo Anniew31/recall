@@ -17,6 +17,9 @@ function App() {
     const [roomCode, setRoomCode] = useState('')
     const [players, setPlayers] = useState<Player[]>([])
     const [isHost, setIsHost] = useState(false)
+    const [topic, setTopic] = useState('')
+    const [questionCount, setQuestionCount] = useState<number>(0)
+    const [notesText, setNotesText] = useState('')
 
     useEffect(() => {
         socket.on('room_created', (data) => {
@@ -38,7 +41,15 @@ function App() {
             setScreen('setup')
         })
 
-        socket.on('setup_completed', () => {
+        socket.on('setup_completed', (data) => {
+            if (!data) {
+                console.error("Received an undefined setup_completed payload from server");
+                return;
+            }
+
+            setTopic(data.topic || '')
+            setQuestionCount(data.questionCount ? Number(data.questionCount) : 2) 
+            setNotesText(data.notesText || '')
             setScreen('question_setup')
         })
 
@@ -55,11 +66,14 @@ function App() {
         const saved = localStorage.getItem('recall_session')
         if (!saved) return
 
-        const { playerName, roomCode, screen, isHost } = JSON.parse(saved)
+        const { playerName, roomCode, screen, isHost, savedTopic, savedCount, savedNotes } = JSON.parse(saved)
         setPlayerName(playerName)
         setRoomCode(roomCode)
         setScreen(screen)
         setIsHost(isHost)
+        if (savedTopic) setTopic(savedTopic)
+        if (savedCount) setQuestionCount(savedCount)
+        if (savedNotes) setNotesText(savedNotes)
 
         if (screen !== 'home') {
             socket.on('connect', () => {
@@ -74,12 +88,15 @@ function App() {
                 playerName,
                 roomCode,
                 screen,
-                isHost
+                isHost,
+                savedTopic: topic,      
+                savedCount: questionCount,
+                savedNotes: notesText
             }))
         } else {
             localStorage.removeItem('recall_session')
         }
-    }, [screen, playerName, roomCode, isHost])
+    }, [screen, playerName, roomCode, isHost, topic, questionCount, notesText])
 
     const handleJoinRoom = (roomCodeInput: string) => {
         socket.emit('join_room', { playerName, roomCode: roomCodeInput.toUpperCase() })
@@ -99,9 +116,23 @@ function App() {
         <Lobby players={players} roomCode={roomCode} isHost={isHost} onStart={handleStartGame}></Lobby>
     )
     if (screen === 'setup') return (
-        <Setup isHost={isHost} roomCode={roomCode}></Setup>
+        <Setup 
+            isHost={isHost} 
+            roomCode={roomCode}
+            topic={topic}
+            setTopic={setTopic}
+            questionCount={questionCount}
+            setQuestionCount={setQuestionCount}
+        />
     )
-    if (screen === 'question_setup') return <div>question setup</div>
+    if (screen === 'question_setup') return (
+        <div>
+            <h1>Question Setup Screen Placeholder</h1>
+            <p>Topic: {topic}</p>
+            <p>Questions Needed: {questionCount}</p>
+            <p>Has Notes Loaded: {notesText ? "Yes" : "No"}</p>
+        </div>
+    )
     return null
 }
 

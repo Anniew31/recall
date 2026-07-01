@@ -5,12 +5,14 @@ import Error from "./Error"
 type SetupProps = {
     isHost: boolean
     roomCode: string
+    topic: string
+    questionCount: number
+    setTopic: (t: string) => void
+    setQuestionCount: (c: number) => void
 }
 
-export default function Setup({isHost, roomCode}: SetupProps) {
+export default function Setup({isHost, roomCode, topic, setTopic, questionCount, setQuestionCount} : SetupProps) {
     const [error, setError] = useState('')
-    const [topic, setTopic] = useState('')
-    const [questionCount, setQuestionCount] = useState('')
     const [isProcessing, setIsProcessing] = useState(false)
     const [file, setFile] = useState<File | undefined>(undefined)
     
@@ -25,7 +27,10 @@ export default function Setup({isHost, roomCode}: SetupProps) {
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
-        if (!file) return
+        if (!topic.trim() || !questionCount || !file) {
+            setError("Please fill out all setup parameters and upload a pdf before launching.")
+            return
+        }
 
         setIsProcessing(true)
         try {
@@ -38,12 +43,12 @@ export default function Setup({isHost, roomCode}: SetupProps) {
             })
 
             if (!res.ok) {
-                throw new Error("Failed to extract text from PDF")
+                setError("Failed to extract text from PDF")
             }
 
             const data = await res.json()
 
-            socket.emit('setup_completed', {
+            socket.emit('game_configured', {
                 roomCode,
                 topic,
                 questionCount,
@@ -135,8 +140,8 @@ export default function Setup({isHost, roomCode}: SetupProps) {
                                             <button
                                                 key={n}
                                                 type="button"
-                                                onClick={() => setQuestionCount(String(n))}
-                                                className={`pill ${questionCount === String(n) ? 'pill-active' : ''}`}
+                                                onClick={() => setQuestionCount(n)}
+                                                className={`pill ${questionCount === n ? 'pill-active' : ''}`}
                                             >
                                                 {n}
                                             </button>
