@@ -1,5 +1,6 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import Error from "./Error"
+import { startBackgroundMusic } from '../sounds'
 
 type Player = {
     id: string
@@ -21,6 +22,10 @@ export default function Lobby({players, roomCode, isHost, onStart }: LobbyProps)
     const [editingName, setEditingName] = useState(false)
     const [nameInput, setNameInput] = useState('')
     const [error, setError] = useState('')
+
+    useEffect(() => {
+        startBackgroundMusic()
+    }, [])
 
     const handleCopy = () => {
         navigator.clipboard.writeText(roomCode)

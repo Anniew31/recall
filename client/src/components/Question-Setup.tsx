@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import socket from "../socket";
 import Error from "./Error"
+import { playSubmit } from "../sounds";
 
 type QuestionSetupProps = {
     questionCount: number,
@@ -48,6 +49,7 @@ export default function QuestionSetup({questionCount, topic, notesText, playerNa
             return
         }
         try {
+            playSubmit()
             socket.emit('submit_question', {
                 roomCode,
                 notesText,
