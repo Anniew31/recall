@@ -13,13 +13,83 @@ const io = new Server(httpServer, {
 
 const rooms = {}
 
+async function endRound(roomCode, questionId) {
+    for (const [socketId, answerText] of Object.entries(rooms[roomCode].answers)) {
+        try {
+            const res = await fetch(`http://localhost:8000/score-answer`, {
+                method: "POST",
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ question_id: questionId, player_answer: answerText })
+            })
+
+            if (!res.ok) {
+                setError("Failed to score ansswer")
+            }
+
+            const data = await res.json()
+            rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + data.score
+        } catch (err) {
+            console.log("Something went wrong grading.")
+        }
+    }
+
+
+    const namedScores = {}
+    for (const [socketId, score] of Object.entries(rooms[roomCode].scores)) {
+        const player = rooms[roomCode].players.find(p => p.id === socketId)
+        if (player) namedScores[player.name] = score
+    }
+
+    io.to(roomCode).emit('round_results', {
+        scores: namedScores
+    })
+
+    rooms[roomCode].currentRound++
+
+    if (rooms[roomCode].currentRound >= rooms[roomCode].totalRounds) {
+        io.to(roomCode).emit('game_over', {
+            finalScores: rooms[roomCode].scores
+        })
+    } else {
+        setTimeout(() => startRound(roomCode), 5000)
+    }
+}
+
+function startRound(roomCode) {
+    const room = rooms[roomCode]
+    const question = room.questions[room.currentRound]
+    room.answers = {}
+    let timeLeft = 60;
+
+    io.to(roomCode).emit('round_started', {
+        question: question,
+        roundNumber: room.currentRound + 1,
+        totalRounds: room.totalRounds,
+        timeLeft: timeLeft
+    });
+
+    room.roundTimer = setInterval(() => {
+        timeLeft--;
+        io.to(roomCode).emit('timer_tick', { timeLeft })
+        if (timeLeft <= 0) {
+            clearInterval(room.roundTimer)
+            endRound(roomCode, question.id)
+        }
+    }, 1000)
+}
+
 io.on('connection', (socket) => {
     socket.on('create_room', (data) => {
         const roomCode = Math.random().toString(36).substring(2, 7).toUpperCase()
         rooms[roomCode] = { 
             players: [],
             questions: [],
-            submissionsCount: {}
+            submissionsCount: {},
+            currentRound: 0,
+            totalRounds: 0,
+            answers: {}, // {socketId: answerText }       
+            scores: {}, // { playerName: totalScore }
+            roundTimer: null
         }
         rooms[roomCode].players.push({ id: socket.id, name: data.playerName, isHost: true })
         socket.join(roomCode)
@@ -66,7 +136,11 @@ io.on('connection', (socket) => {
 
     socket.on('game_configured', (data) => {
         if (!rooms[data.roomCode]) {
-            rooms[data.roomCode] = { players: [], questions: [], submissionsCount: {} }
+            rooms[data.roomCode] = { 
+                players: [], questions: [], submissionsCount: {},
+                currentRound: 0, totalRounds: 0,
+                answers: {}, scores: {}, roundTimer: null
+            }
         }
 
         rooms[data.roomCode].topic = data.topic || "Untitled Topic" 
@@ -115,11 +189,17 @@ io.on('connection', (socket) => {
         });
 
         if (finishedPlayersCount === totalPlayers) {
-            io.to(data.roomCode).emit('all_questions_ready', {
-                questions: room.questions
-            });
+            room.totalRounds = room.questions.length
+            io.to(data.roomCode).emit('all_questions_ready')
+            setTimeout(() => startRound(data.roomCode), 3000)
         }
-    });
+    })
+
+    socket.on('submit_answer', (data) => {
+        const room = rooms[data.roomCode]
+        if (!room) return
+        room.answers[socket.id] = data.answer
+    })
 })
 
 httpServer.listen(3001, () => {
