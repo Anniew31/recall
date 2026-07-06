@@ -5,6 +5,7 @@ import Join from "./components/Join"
 import Lobby from "./components/Lobby"
 import Setup from "./components/Setup"
 import QuestionSetup from "./components/Question-Setup"
+import Game from './components/Game'
 
 type Player = {
     id: string
@@ -138,6 +139,12 @@ function App() {
             notesText={notesText}
             playerName={playerName}
             roomCode={roomCode}
+        />
+    )
+    if (screen === 'game') return (
+        <Game
+            roomCode={roomCode}
+            playerName={playerName}
         />
     )
     return null
