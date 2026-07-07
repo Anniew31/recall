@@ -19,9 +19,14 @@ function App() {
     const [roomCode, setRoomCode] = useState('')
     const [players, setPlayers] = useState<Player[]>([])
     const [isHost, setIsHost] = useState(false)
+    
     const [topic, setTopic] = useState('')
     const [questionCount, setQuestionCount] = useState<number>(0)
     const [notesText, setNotesText] = useState('')
+    
+    const [currentQuestion, setCurrentQuestion] = useState<{ id: string, questionText: string }>({ id: '', questionText: '' })
+    const [roundNumber, setRoundNumber] = useState(0)
+    const [totalRounds, setTotalRounds] = useState(0)
 
     useEffect(() => {
         socket.on('room_created', (data) => {
@@ -59,6 +64,13 @@ function App() {
             setScreen('game')
         })
 
+        socket.on('round_started', (data) => {
+            setCurrentQuestion(data.question)
+            setRoundNumber(data.roundNumber)
+            setTotalRounds(data.totalRounds)
+            setScreen('game')
+        })
+
         return () => {
             socket.off('room_created')
             socket.off('player_list_updated')
@@ -66,6 +78,7 @@ function App() {
             socket.off('game_setup_started')
             socket.off('setup_completed')
             socket.off('game')
+            socket.off('round_started')
         }
     }, [])
 
@@ -145,6 +158,9 @@ function App() {
         <Game
             roomCode={roomCode}
             playerName={playerName}
+            currentQuestion={currentQuestion}
+            roundNumber={roundNumber}
+            totalRounds={totalRounds}
         />
     )
     return null

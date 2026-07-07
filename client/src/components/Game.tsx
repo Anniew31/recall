@@ -5,15 +5,15 @@ import Error from "./Error";
 type GameProps = {
     roomCode: string
     playerName: string
+    currentQuestion: { id: string, questionText: string }
+    roundNumber: number
+    totalRounds: number
 }
 
-export default function Game ({roomCode, playerName }: GameProps) {
+export default function Game ({roomCode, playerName, currentQuestion, roundNumber, totalRounds }: GameProps) {
     const [timeLeft, setTimeLeft] = useState(60)
     const [answer, setAnswer] = useState('')
     const [submitted, setSubmitted] = useState(false)
-    const [currentQuestion, setCurrentQuestion] = useState<{ id: string, questionText: string } | null>(null)
-    const [roundNumber, setRoundNumber] = useState(0)
-    const [totalRounds, setTotalRounds] = useState(0)
     const [error, setError] = useState('')
 
     const circumference = 188.5
@@ -25,22 +25,12 @@ export default function Game ({roomCode, playerName }: GameProps) {
             setError(data.message)
         })
 
-        socket.on('round_started', (data) => {
-            setCurrentQuestion(data.question)
-            setRoundNumber(data.roundNumber)
-            setTotalRounds(data.totalRounds)
-            setTimeLeft(data.timeLeft)
-            setSubmitted(false)
-            setAnswer('')
-        })
-
         socket.on('timer_tick', (data) => {
             setTimeLeft(data.timeLeft)
         })
 
         return () => {
             socket.off('error')
-            socket.off('round_started')
             socket.off('timer_tick')
         }
     }, [])
