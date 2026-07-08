@@ -1,6 +1,7 @@
 import { useEffect, useState} from "react";
 import socket from "../socket";
 import Error from "./Error";
+import TopBar from "./TopBar";
 
 type GameProps = {
     roomCode: string
@@ -50,16 +51,7 @@ export default function Game ({roomCode, playerName, currentQuestion, roundNumbe
             {error && <Error message={error} onClose={() => setError('')} />}
 
             {/* top bar */}
-            <div className="lobby-header">
-                <div>
-                    <p className="logo-title text-2xl">RECALL</p>
-                    <p className="logo-subtitle">Study together. Compete together.</p>
-                </div>
-                <div className="text-right">
-                    <p className="lobby-header-label">Room Code</p>
-                    <p className="lobby-header-value">{roomCode}</p>
-                </div>
-            </div>
+            <TopBar roomCode={roomCode}/>
 
             {/* round and timer */}
             <div className="round-indicator">

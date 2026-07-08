@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import socket from "../socket";
 import Error from "./Error"
 import { playSubmit } from "../sounds";
+import TopBar from "./TopBar";
 
 type QuestionSetupProps = {
     questionCount: number,
@@ -67,16 +68,7 @@ export default function QuestionSetup({questionCount, topic, notesText, playerNa
             {error && <Error message={error} onClose={() => setError('')} />}
             
             {/* top bar */}
-            <div className="lobby-header">
-                <div>
-                    <p className="logo-title text-2xl">RECALL</p>
-                    <p className="logo-subtitle">Study together. Compete together.</p>
-                </div>
-                <div className="text-right">
-                    <p className="lobby-header-label">Room Code</p>
-                    <p className="lobby-header-value">{roomCode}</p>
-                </div>
-            </div>
+            <TopBar roomCode={roomCode}></TopBar>
 
             {submittedCount >= questionCount ? (
                 <div className="flex-1 flex flex-col items-center justify-center gap-4">
