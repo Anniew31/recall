@@ -6,6 +6,7 @@ import Lobby from "./components/Lobby"
 import Setup from "./components/Setup"
 import QuestionSetup from "./components/Question-Setup"
 import Game from './components/Game'
+import QuestionPreview from "./components/QuestionPreview"
 
 type Player = {
     id: string
@@ -14,11 +15,12 @@ type Player = {
 }
 
 function App() {
-    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'game' >('home')
+    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results'>('home')
     const [playerName, setPlayerName] = useState('')
     const [roomCode, setRoomCode] = useState('')
     const [players, setPlayers] = useState<Player[]>([])
     const [isHost, setIsHost] = useState(false)
+    const [score, setScore] = useState(0)
     
     const [topic, setTopic] = useState('')
     const [questionCount, setQuestionCount] = useState<number>(0)
@@ -60,15 +62,18 @@ function App() {
             setScreen('question_setup')
         })
 
-        socket.on('all_questions_ready', (data) => {
-            setScreen('game')
-        })
-
         socket.on('round_started', (data) => {
             setCurrentQuestion(data.question)
             setRoundNumber(data.roundNumber)
             setTotalRounds(data.totalRounds)
-            setScreen('game')
+            setScreen('question_preview')
+        })
+
+        socket.on('round_results', (data) => {
+            if (data.scores[playerName]) {
+                setScore(data.scores[playerName])
+            }
+            setScreen('results')
         })
 
         return () => {
@@ -79,6 +84,7 @@ function App() {
             socket.off('setup_completed')
             socket.off('game')
             socket.off('round_started')
+            socket.off('round_results')
         }
     }, [])
 
@@ -161,6 +167,18 @@ function App() {
             currentQuestion={currentQuestion}
             roundNumber={roundNumber}
             totalRounds={totalRounds}
+        />
+    )
+
+    if (screen === 'question_preview') return (
+        <QuestionPreview
+            roundNumber={roundNumber}
+            totalRounds={totalRounds}
+            currentQuestion={currentQuestion}
+            roomCode={roomCode}
+            playerName={playerName}
+            score={score}
+            setScreen={setScreen}
         />
     )
     return null
