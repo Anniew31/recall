@@ -80,14 +80,16 @@ function startRound(roomCode) {
         timeLeft: timeLeft
     });
 
-    room.roundTimer = setInterval(() => {
-        timeLeft--;
-        io.to(roomCode).emit('timer_tick', { timeLeft })
-        if (timeLeft <= 0) {
-            clearInterval(room.roundTimer)
-            endRound(roomCode, question.id)
-        }
-    }, 1000)
+    setTimeout(() => {
+        room.roundTimer = setInterval(() => {
+            timeLeft--
+            io.to(roomCode).emit('timer_tick', { timeLeft })
+            if (timeLeft <= 0) {
+                clearInterval(room.roundTimer)
+                endRound(roomCode, question.id)
+            }
+        }, 1000)
+    }, 11000)
 }
 
 io.on('connection', (socket) => {
