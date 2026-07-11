@@ -40,6 +40,7 @@ export default function Game ({roomCode, playerName, currentQuestion, roundNumbe
         e.preventDefault()
         try {
             socket.emit('submit_answer', { roomCode, answer })
+            setSubmitted(true)
         } catch (err) {
             setError("Something went wrong submitting your answer. Please try again.")
         }

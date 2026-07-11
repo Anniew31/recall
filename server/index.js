@@ -23,7 +23,9 @@ async function endRound(roomCode, questionId) {
             })
 
             if (!res.ok) {
-                setError("Failed to score ansswer")
+                console.error("Failed to score answer")
+                rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + 0
+                continue
             }
 
             const data = await res.json()
@@ -33,15 +35,25 @@ async function endRound(roomCode, questionId) {
         }
     }
 
-
     const namedScores = {}
     for (const [socketId, score] of Object.entries(rooms[roomCode].scores)) {
         const player = rooms[roomCode].players.find(p => p.id === socketId)
         if (player) namedScores[player.name] = score
     }
 
+    const playerResults = {}
+    rooms[roomCode].players.forEach(player => {
+        const answerText = rooms[roomCode].answers[player.id];
+        playerResults[player.name] = {
+            answer: answerText || 'No answer submitted',
+            score: rooms[roomCode].scores[player.id] || 0
+        }
+    })
+
     io.to(roomCode).emit('round_results', {
-        scores: namedScores
+        scores: namedScores,
+        question: rooms[roomCode].questions[rooms[roomCode].currentRound],
+        playerResults
     })
 
     rooms[roomCode].currentRound++
@@ -51,7 +63,7 @@ async function endRound(roomCode, questionId) {
             finalScores: rooms[roomCode].scores
         })
     } else {
-        setTimeout(() => startRound(roomCode), 5000)
+        setTimeout(() => startRound(roomCode), 3000)
     }
 }
 

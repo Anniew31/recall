@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import socket from "./socket"
 import Home from "./components/Home"
 import Join from "./components/Join"
@@ -7,6 +7,7 @@ import Setup from "./components/Setup"
 import QuestionSetup from "./components/Question-Setup"
 import Game from './components/Game'
 import QuestionPreview from "./components/QuestionPreview"
+import Results from "./components/Results"
 
 type Player = {
     id: string
@@ -16,7 +17,10 @@ type Player = {
 
 function App() {
     const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results'>('home')
+    
     const [playerName, setPlayerName] = useState('')
+    const playerNameRef = useRef('')
+
     const [roomCode, setRoomCode] = useState('')
     const [players, setPlayers] = useState<Player[]>([])
     const [isHost, setIsHost] = useState(false)
@@ -29,6 +33,16 @@ function App() {
     const [currentQuestion, setCurrentQuestion] = useState<{ id: string, questionText: string }>({ id: '', questionText: '' })
     const [roundNumber, setRoundNumber] = useState(0)
     const [totalRounds, setTotalRounds] = useState(0)
+
+    const [roundResults, setRoundResults] = useState<{
+        scores: Record<string, number>,
+        question: { id: string, questionText: string, correctAnswer: string },
+        playerResults: Record<string, { answer: string, score: number }>
+    } | null>(null)
+
+    useEffect(() => {
+        playerNameRef.current = playerName
+    }, [playerName])
 
     useEffect(() => {
         socket.on('room_created', (data) => {
@@ -70,9 +84,8 @@ function App() {
         })
 
         socket.on('round_results', (data) => {
-            if (data.scores[playerName]) {
-                setScore(data.scores[playerName])
-            }
+            setRoundResults(data)
+            setScore(prev => prev + (data.playerResults?.[playerNameRef.current]?.score || 0))
             setScreen('results')
         })
 
@@ -181,6 +194,22 @@ function App() {
             setScreen={setScreen}
         />
     )
+
+    if (screen === 'results' && roundResults) return (
+        <Results
+            question={roundResults?.question}
+            playerAnswer={roundResults?.playerResults?.[playerName]?.answer ?? ''}
+            correctAnswer={roundResults?.question?.correctAnswer ?? ''}
+            roundScore={roundResults?.playerResults?.[playerName]?.score ?? 0}
+            totalScore={score}
+            playerName={playerName}
+            roomCode={roomCode}
+            roundNumber={roundNumber}
+            totalRounds={totalRounds}
+            setScreen={setScreen}
+        />
+    )
+
     return null
 }
 

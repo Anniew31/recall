@@ -70,6 +70,10 @@ def score_answer(input: ScoreInput):
         ids=[input.question_id],
         include=["embeddings"]
     )
+
+    if len(result["embeddings"]) == 0:
+        return {"status": "error", "score": 0}
+    
     correct_embedding = result["embeddings"][0]
     raw_similarity = cosine_similarity(correct_embedding, player_embedding)
     return {
