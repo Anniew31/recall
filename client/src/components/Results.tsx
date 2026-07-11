@@ -59,7 +59,7 @@ export default function Results({ question, playerAnswer, correctAnswer, totalSc
                         
                         <div className="bg-white rounded-xl px-6 py-4 text-center shadow-lg min-w-[100px]">
                             <p className="text-gray-500 text-xs font-bold uppercase tracking-wider mb-0.5">Score</p>
-                            <p className="text-gray-900 text-3xl font-black leading-none">{score}</p>
+                            <p className="text-gray-900 text-3xl font-black leading-none">{totalScore}</p>
                         </div>
                     </div>
 
