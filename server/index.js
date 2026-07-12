@@ -14,6 +14,16 @@ const io = new Server(httpServer, {
 const rooms = {}
 
 async function endRound(roomCode, questionId) {
+    // save previous rankings
+    const previousRankings = Object.entries(rooms[roomCode].scores)
+        .sort(([,a], [,b]) => b - a)
+        .map(([socketId], index) => ({ socketId, rank: index + 1 }))
+
+    rooms[roomCode].previousRankings = previousRankings
+
+    const previousScores = { ...rooms[roomCode].scores }
+
+    // grade answers and calcaluate scores
     for (const [socketId, answerText] of Object.entries(rooms[roomCode].answers)) {
         try {
             const res = await fetch(`http://localhost:8000/score-answer`, {
@@ -41,6 +51,22 @@ async function endRound(roomCode, questionId) {
         if (player) namedScores[player.name] = score
     }
 
+    // update rankings
+    const currentRankings = Object.entries(rooms[roomCode].scores)
+        .sort(([,a], [,b]) => b - a)
+        .map(([socketId], index) => {
+            const prev = previousRankings.find(p => p.socketId === socketId)
+            const movement = prev ? prev.rank - (index + 1) : 0
+            const player = rooms[roomCode].players.find(p => p.id === socketId)
+            return {
+                name: player?.name,
+                score: rooms[roomCode].scores[socketId],
+                rank: index + 1,
+                movement,
+                roundScore: rooms[roomCode].scores[socketId] - (previousScores[socketId] || 0)
+            }
+        })
+
     const playerResults = {}
     rooms[roomCode].players.forEach(player => {
         const answerText = rooms[roomCode].answers[player.id];
@@ -53,7 +79,8 @@ async function endRound(roomCode, questionId) {
     io.to(roomCode).emit('round_results', {
         scores: namedScores,
         question: rooms[roomCode].questions[rooms[roomCode].currentRound],
-        playerResults
+        playerResults,
+        leaderboard: currentRankings
     })
 
     rooms[roomCode].currentRound++
