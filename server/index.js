@@ -27,7 +27,7 @@ async function endRound(roomCode, questionId) {
                 rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + 0
                 continue
             }
-
+            
             const data = await res.json()
             rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + data.score
         } catch (err) {
@@ -173,7 +173,7 @@ io.on('connection', (socket) => {
         if (!room) return;
 
         const newQuestion = {
-            id: Math.random().toString(36).substring(2, 9),
+            id: data.questionId,
             player: data.playerName,
             playerId: socket.id,
             questionText: data.questionText,

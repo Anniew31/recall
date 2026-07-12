@@ -8,7 +8,7 @@ import numpy as np
 
 model = SentenceTransformer('all-MiniLM-L6-v2')
 app = FastAPI()
-client = chromadb.Client()
+client = chromadb.PersistentClient(path="./chromadb_data")
 collection = client.get_or_create_collection("answers")
 
 app.add_middleware(
@@ -20,7 +20,17 @@ app.add_middleware(
 )
 
 def cosine_similarity(a, b):
-    return float(np.dot(a, b) / (np.linalg.norm(a) * np.linalg.norm(b)))
+    a_flat = np.ravel(a)
+    b_flat = np.ravel(b)
+    
+    dot_product = np.dot(a_flat, b_flat)
+    norm_a = np.linalg.norm(a_flat)
+    norm_b = np.linalg.norm(b_flat)
+    
+    if norm_a == 0 or norm_b == 0:
+        return 0.0
+        
+    return float(dot_product / (norm_a * norm_b))
 
 def normalize_score(similarity: float) -> float:
     min_sim = 0.15
@@ -65,18 +75,22 @@ def embed_answer(input: AnswerInput):
 
 @app.post("/score-answer")
 def score_answer(input: ScoreInput):
-    player_embedding = model.encode(input.player_answer)
-    result = collection.get(
-        ids=[input.question_id],
-        include=["embeddings"]
-    )
+    try:
+        result = collection.get(
+            ids=[input.question_id],
+            include=["embeddings"]
+        )
+        
+        embeddings = result.get("embeddings")
 
-    if len(result["embeddings"]) == 0:
-        return {"status": "error", "score": 0}
+        if embeddings is None or len(embeddings) == 0:
+            return {"status": "error", "score": 0}
     
-    correct_embedding = result["embeddings"][0]
-    raw_similarity = cosine_similarity(correct_embedding, player_embedding)
-    return {
-        "status": "ok",
-        "score": normalize_score(raw_similarity)
-    }
+        correct_embedding = result["embeddings"][0]
+        player_embedding = model.encode(input.player_answer)
+        similarity = cosine_similarity(correct_embedding, player_embedding)
+        score = normalize_score(similarity)
+    
+        return {"status": "ok", "score": score}
+    except Exception as e:
+        return {"status": "error", "score": 0}

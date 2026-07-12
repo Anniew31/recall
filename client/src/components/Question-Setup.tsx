@@ -51,12 +51,30 @@ export default function QuestionSetup({questionCount, topic, notesText, playerNa
         }
         try {
             playSubmit()
+
+            const questionId = Math.random().toString(36).substring(2, 9)
+            const res = await fetch('http://localhost:8000/embed-answer', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question_id: questionId,
+                    question: questionText,
+                    answer: correctAnswer
+                })
+            })
+
+            if (!res.ok) {
+                setError("Failed to store question embedding.")
+                return
+            }
+
             socket.emit('submit_question', {
                 roomCode,
                 notesText,
                 playerName,
                 questionText,
                 correctAnswer,
+                questionId
             })
         } catch (err) {
             setError("Something went wrong submitting your question. Please try again.")
