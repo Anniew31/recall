@@ -10,7 +10,7 @@ type ReactProps = {
     roomCode: string
     roundNumber: number
     totalRounds: number
-    setScreen: (screen: 'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results') => void
+    setScreen: (screen: 'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results' | 'leaderboard') => void
 }
 
 export default function Results({ question, playerAnswer, correctAnswer, totalScore, roundScore, playerName, roomCode, roundNumber, totalRounds, setScreen } : ReactProps) {
@@ -26,7 +26,7 @@ export default function Results({ question, playerAnswer, correctAnswer, totalSc
 
     useEffect(() => {
         if (timeLeft <= 0) {
-            setScreen('question_preview')
+            setScreen('leaderboard')
         }
     }, [timeLeft])
     

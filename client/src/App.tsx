@@ -8,6 +8,7 @@ import QuestionSetup from "./components/Question-Setup"
 import Game from './components/Game'
 import QuestionPreview from "./components/QuestionPreview"
 import Results from "./components/Results"
+import Leaderboard from "./components/Leaderboard"
 
 type Player = {
     id: string
@@ -16,7 +17,7 @@ type Player = {
 }
 
 function App() {
-    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results'>('home')
+    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results' | 'leaderboard'>('home')
     
     const [playerName, setPlayerName] = useState('')
     const playerNameRef = useRef('')
@@ -37,7 +38,8 @@ function App() {
     const [roundResults, setRoundResults] = useState<{
         scores: Record<string, number>,
         question: { id: string, questionText: string, correctAnswer: string },
-        playerResults: Record<string, { answer: string, score: number }>
+        playerResults: Record<string, { answer: string, score: number }>,
+        leaderboard: any
     } | null>(null)
 
     useEffect(() => {
@@ -195,6 +197,12 @@ function App() {
         />
     )
 
+    if (!roundResults || !roundResults.question) return (
+        <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+            <p className="text-white">Loading results...</p>
+        </div>
+    )
+
     if (screen === 'results' && roundResults) return (
         <Results
             question={roundResults?.question}
@@ -206,6 +214,17 @@ function App() {
             roomCode={roomCode}
             roundNumber={roundNumber}
             totalRounds={totalRounds}
+            setScreen={setScreen}
+        />
+    )
+
+    if (screen === 'leaderboard') return (
+        <Leaderboard
+            leaderboard={roundResults?.leaderboard}
+            playerName={playerName}
+            roundNumber={roundNumber}
+            totalRounds={totalRounds}
+            roomCode={roomCode}
             setScreen={setScreen}
         />
     )
