@@ -482,3 +482,105 @@ body {
 .progress-ring-circle {
   transition: stroke-dashoffset 1s ease;
 }
+
+.leaderboard-list {
+  flex: 1;
+  padding: 1.5rem 4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow-y: auto;
+  max-width: 800px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.leaderboard-entry {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border-radius: 1rem;
+  padding: 1.25rem 1.5rem;
+  border: 1px solid rgba(255,255,255,0.08);
+  background-color: var(--color-card);
+  transition: all 300ms ease;
+}
+
+.leaderboard-gold {
+  background: linear-gradient(135deg, rgba(251,191,36,0.2), rgba(251,191,36,0.05));
+  border-color: rgba(251,191,36,0.4);
+}
+
+.leaderboard-silver {
+  background: linear-gradient(135deg, rgba(148,163,184,0.15), rgba(148,163,184,0.05));
+  border-color: rgba(148,163,184,0.3);
+}
+
+.leaderboard-bronze {
+  background: linear-gradient(135deg, rgba(180,83,9,0.15), rgba(180,83,9,0.05));
+  border-color: rgba(180,83,9,0.3);
+}
+
+.leaderboard-me {
+  background: rgba(76,29,149,0.2);
+  border-color: rgba(76,29,149,0.4);
+}
+
+.leaderboard-default {
+  background-color: var(--color-card);
+}
+
+.leaderboard-rank {
+  font-size: 1.25rem;
+  font-weight: 900;
+  width: 32px;
+  flex-shrink: 0;
+}
+
+.leaderboard-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.1rem;
+  font-weight: 900;
+  flex-shrink: 0;
+}
+
+.leaderboard-divider {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.leaderboard-countdown {
+  background: rgba(255,255,255,0.15);
+  border-radius: 0.75rem;
+  padding: 0.5rem 1rem;
+  text-align: center;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.leaderboard-entry {
+  animation: slideIn 400ms ease forwards;
+}
+
+.leaderboard-entry:nth-child(1) { animation-delay: 0ms; }
+.leaderboard-entry:nth-child(2) { animation-delay: 100ms; }
+.leaderboard-entry:nth-child(3) { animation-delay: 200ms; }
+.leaderboard-entry:nth-child(4) { animation-delay: 300ms; }
+.leaderboard-entry:nth-child(5) { animation-delay: 400ms; }
