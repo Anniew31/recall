@@ -39,7 +39,7 @@ async function endRound(roomCode, questionId) {
             }
             
             const data = await res.json()
-            rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + Math.round(data.score * 100)
+            rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + data.score
         } catch (err) {
             console.log("Something went wrong grading.")
         }
@@ -70,9 +70,12 @@ async function endRound(roomCode, questionId) {
     const playerResults = {}
     rooms[roomCode].players.forEach(player => {
         const answerText = rooms[roomCode].answers[player.id];
+        const rawScore = rooms[roomCode].scores[player.id] || 0
+        const prevScore = previousScores[player.id] || 0
         playerResults[player.name] = {
             answer: answerText || 'No answer submitted',
-            score: rooms[roomCode].scores[player.id] || 0
+            score: rawScore,
+            roundScore: rawScore - prevScore
         }
     })
 

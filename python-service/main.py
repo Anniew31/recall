@@ -36,7 +36,9 @@ def normalize_score(similarity: float) -> float:
     min_sim = 0.15
     max_sim = 0.9
     normalized = (similarity - min_sim) / (max_sim - min_sim)
-    return round(max(0.0, min(1.0, normalized)) * 10, 1)
+    raw_score = normalized * 10
+    clamped_score = max(0.0, min(10.0, raw_score))
+    return round(clamped_score, 1)
 
 class AnswerInput(BaseModel):
     question_id: str
