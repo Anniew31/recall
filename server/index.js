@@ -39,7 +39,7 @@ async function endRound(roomCode, questionId) {
             }
             
             const data = await res.json()
-            rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + data.score
+            rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + Math.round(data.score * 100)
         } catch (err) {
             console.log("Something went wrong grading.")
         }
@@ -63,7 +63,7 @@ async function endRound(roomCode, questionId) {
                 score: rooms[roomCode].scores[socketId],
                 rank: index + 1,
                 movement,
-                roundScore: rooms[roomCode].scores[socketId] - (previousScores[socketId] || 0)
+                roundScore: Math.round((rooms[roomCode].scores[socketId] - (previousScores[socketId] || 0)))
             }
         })
 

@@ -71,11 +71,11 @@ export default function Leaderboard ( {leaderboard, playerName, roundNumber, tot
                         </div>
                         <div className="flex-1">
                             <p className="text-white font-bold text-sm">{entry.name} {entry.name === playerName ? '(you)' : ''}</p>
-                            <p className="lobby-status-text text-xs">+{Math.round(entry.roundScore * 100)} pts this round</p>
+                            <p className="lobby-status-text text-xs">+{entry.roundScore} pts this round</p>
                         </div>
                         <div className="text-right">
                             <p className={`font-black text-lg ${entry.rank === 1 ? 'text-[#fbbf24]' : entry.rank === 2 ? 'text-[#94a3b8]' : entry.rank === 3 ? 'text-[#b45309]' : 'text-white'}`}>
-                                {Math.round(entry.score)}
+                                {entry.score}
                             </p>
                             <p className={`text-xs font-bold ${entry.movement > 0 ? 'text-[#10b981]' : entry.movement < 0 ? 'text-[#ef4444]' : 'text-[--color-muted]'}`}>
                                 {entry.movement > 0 ? `▲ ${entry.movement}` : entry.movement < 0 ? `▼ ${Math.abs(entry.movement)}` : '— 0'}
