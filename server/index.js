@@ -88,9 +88,21 @@ async function endRound(roomCode, questionId) {
 
     rooms[roomCode].currentRound++
 
+    // game is over
     if (rooms[roomCode].currentRound >= rooms[roomCode].totalRounds) {
+        const finalLeaderboard = Object.entries(rooms[roomCode].scores)
+            .sort(([,a], [,b]) => b - a)
+            .map(([socketId, score], index) => {
+                const player = rooms[roomCode].players.find(p => p.id === socketId)
+                return {
+                    name: player?.name,
+                    score: score,
+                    rank: index + 1
+                }
+            })
+
         io.to(roomCode).emit('game_over', {
-            finalScores: rooms[roomCode].scores
+            finalLeaderboard
         })
     } else {
         setTimeout(() => startRound(roomCode), 3000)
