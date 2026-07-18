@@ -1,3 +1,5 @@
+import { useEffect } from "react"
+
 type FinalLeaderboardEntry = {
     name: string
     score: number
@@ -16,6 +18,30 @@ export default function GameOver({ finalLeaderboard, playerName, roomCode }: Gam
     const secondPlace = finalLeaderboard.find(p => p.rank === 2);
     const thirdPlace = finalLeaderboard.find(p => p.rank === 3);
     const runnerUps = finalLeaderboard.filter(p => p.rank > 3);
+
+    useEffect(() => {
+        const colors = ['#4c1d95', '#10b981', '#fbbf24', '#ef4444', '#0ea5e9', '#a78bfa']
+        for (let i = 0; i < 80; i++) {
+            const piece = document.createElement('div')
+            piece.style.cssText = `
+                position: fixed;
+                width: ${Math.random() * 8 + 6}px;
+                height: ${Math.random() * 8 + 6}px;
+                background: ${colors[Math.floor(Math.random() * colors.length)]};
+                left: ${Math.random() * 100}vw;
+                top: -20px;
+                border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+                animation: fall ${Math.random() * 3 + 2}s linear ${Math.random() * 3}s infinite;
+                z-index: 50;
+                pointer-events: none;
+            `
+            document.body.appendChild(piece)
+        }
+
+        return () => {
+            document.querySelectorAll('[style*="fall"]').forEach(el => el.remove())
+        }
+    }, [])
 
     return (
         <main className="min-h-screen w-full flex flex-col bg-[#0f172a] relative overflow-hidden">
