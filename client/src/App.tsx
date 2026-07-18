@@ -9,6 +9,7 @@ import Game from './components/Game'
 import QuestionPreview from "./components/QuestionPreview"
 import Results from "./components/Results"
 import Leaderboard from "./components/Leaderboard"
+import GameOver from "./components/GameOver"
 
 type Player = {
     id: string
@@ -16,8 +17,14 @@ type Player = {
     isHost: boolean
 }
 
+type FinalLeaderboardEntry = {
+    name: string
+    score: number
+    rank: number
+}
+
 function App() {
-    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results' | 'leaderboard'>('home')
+    const [screen, setScreen] = useState<'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results' | 'leaderboard' | 'game_over'>('home')
     
     const [playerName, setPlayerName] = useState('')
     const playerNameRef = useRef('')
@@ -41,6 +48,8 @@ function App() {
         playerResults: Record<string, { answer: string, score: number }>,
         leaderboard: any
     } | null>(null)
+
+    const [finalLeaderboard, setFinalLeaderboard] = useState<FinalLeaderboardEntry[]>([])
 
     useEffect(() => {
         playerNameRef.current = playerName
@@ -91,6 +100,11 @@ function App() {
             setScreen('results')
         })
 
+        socket.on('game_over', (data) => {
+            setFinalLeaderboard(data.finalLeaderboard)
+            setScreen('game_over')
+        })
+
         return () => {
             socket.off('room_created')
             socket.off('player_list_updated')
@@ -100,6 +114,7 @@ function App() {
             socket.off('game')
             socket.off('round_started')
             socket.off('round_results')
+            socket.off('game_over')
         }
     }, [])
 
@@ -226,6 +241,14 @@ function App() {
             totalRounds={totalRounds}
             roomCode={roomCode}
             setScreen={setScreen}
+        />
+    )
+
+    if (screen === 'game_over') return (
+        <GameOver
+            finalLeaderboard={finalLeaderboard}
+            playerName={playerName}
+            roomCode={roomCode}
         />
     )
 
