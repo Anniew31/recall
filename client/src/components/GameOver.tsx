@@ -54,7 +54,10 @@ export default function GameOver({ finalLeaderboard, playerName, roomCode }: Gam
                         <p className="text-xs text-white/40 uppercase tracking-widest font-bold mt-0.5">Game Over</p>
                     </div>
 
-                    <button className="play-again-btn" onClick={() => window.location.reload()}>
+                    <button className="play-again-btn" onClick={() => {
+                        localStorage.removeItem('recall_session')
+                        window.location.reload()
+                    }}>
                         🔄 Play Again
                     </button>
                 </div>
