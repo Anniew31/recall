@@ -101,9 +101,11 @@ async function endRound(roomCode, questionId) {
                 }
             })
 
-        io.to(roomCode).emit('game_over', {
-            finalLeaderboard
-        })
+        setTimeout(() => {
+            io.to(roomCode).emit('game_over', {
+                finalLeaderboard
+            })
+        }, 30000)
     } else {
         setTimeout(() => startRound(roomCode), 3000)
     }
