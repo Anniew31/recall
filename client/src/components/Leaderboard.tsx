@@ -1,6 +1,3 @@
-import { useEffect, useState } from "react"
-import socket from "../socket"
-
 type LeaderboardEntry = {
     name: string
     score: number
@@ -15,35 +12,9 @@ type LeaderboardProps = {
     roundNumber: number
     totalRounds: number
     roomCode: string
-    setScreen: (screen: 'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results' | 'leaderboard') => void
 }
 
-export default function Leaderboard ( {leaderboard, playerName, roundNumber, totalRounds, roomCode, setScreen} : LeaderboardProps) {
-    const [timeLeft, setTimeLeft] = useState(10)
-    const [error, setError] = useState('')
-
-    useEffect(() => {
-        socket.on('error', (data) => {
-            setError(data.message)
-        })
-
-        socket.on('timer_tick', (data) => {
-            setTimeLeft(data.timeLeft)
-        })
-
-        return () => {
-            socket.off('error')
-            socket.off('timer_tick')
-        }
-    }, [])
-
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            setScreen('question_preview')
-        }
-    }, [timeLeft])
-
-
+export default function Leaderboard ( {leaderboard, playerName, roundNumber, totalRounds, roomCode } : LeaderboardProps) {
     return (
         <main className="min-h-screen w-full flex flex-col bg-[#0f172a]">
 
@@ -54,8 +25,7 @@ export default function Leaderboard ( {leaderboard, playerName, roundNumber, tot
                     <p className="lobby-status-text">Round {roundNumber} of {totalRounds} — Leaderboard</p>
                 </div>
                 <div className="leaderboard-countdown">
-                    <p className="lobby-header-label">Next round in</p>
-                    <p className="text-white text-2xl font-black">{timeLeft}s</p>
+                    <p className="lobby-header-label">Get ready...</p>
                 </div>
             </div>
 

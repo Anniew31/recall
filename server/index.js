@@ -68,17 +68,6 @@ async function endRound(roomCode, questionId) {
         })
 
     const playerResults = {}
-    rooms[roomCode].players.forEach(player => {
-        const answerText = rooms[roomCode].answers[player.id];
-        const rawScore = rooms[roomCode].scores[player.id] || 0
-        const prevScore = previousScores[player.id] || 0
-        playerResults[player.name] = {
-            answer: answerText || 'No answer submitted',
-            score: rawScore,
-            roundScore: rawScore - prevScore
-        }
-    })
-
     io.to(roomCode).emit('round_results', {
         scores: namedScores,
         question: rooms[roomCode].questions[rooms[roomCode].currentRound],
@@ -88,27 +77,26 @@ async function endRound(roomCode, questionId) {
 
     rooms[roomCode].currentRound++
 
-    // game is over
-    if (rooms[roomCode].currentRound >= rooms[roomCode].totalRounds) {
-        const finalLeaderboard = Object.entries(rooms[roomCode].scores)
-            .sort(([,a], [,b]) => b - a)
-            .map(([socketId, score], index) => {
-                const player = rooms[roomCode].players.find(p => p.id === socketId)
-                return {
-                    name: player?.name,
-                    score: score,
-                    rank: index + 1
-                }
-            })
+    setTimeout(() => {
+        io.to(roomCode).emit('show_leaderboard', {
+            leaderboard: currentRankings
+        })
 
         setTimeout(() => {
-            io.to(roomCode).emit('game_over', {
-                finalLeaderboard
-            })
-        }, 30000)
-    } else {
-        setTimeout(() => startRound(roomCode), 3000)
-    }
+            if (rooms[roomCode].currentRound >= rooms[roomCode].totalRounds) {
+                const finalLeaderboard = Object.entries(rooms[roomCode].scores)
+                    .sort(([,a], [,b]) => b - a)
+                    .map(([socketId, score], index) => {
+                        const player = rooms[roomCode].players.find(p => p.id === socketId)
+                        return { name: player?.name, score, rank: index + 1 }
+                    })
+                io.to(roomCode).emit('game_over', { finalLeaderboard })
+            } else {
+                startRound(roomCode)
+            }
+        }, 8000)
+
+    }, 20000)
 }
 
 function startRound(roomCode) {

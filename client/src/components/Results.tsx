@@ -10,26 +10,9 @@ type ReactProps = {
     roomCode: string
     roundNumber: number
     totalRounds: number
-    setScreen: (screen: 'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game' | 'results' | 'leaderboard') => void
 }
 
-export default function Results({ question, playerAnswer, correctAnswer, totalScore, roundScore, playerName, roomCode, roundNumber, totalRounds, setScreen } : ReactProps) {
-    const [timeLeft, setTimeLeft] = useState(20);
-
-    useEffect(() => {
-        const timer = setInterval(() => {
-            setTimeLeft(prev => prev - 1)
-        }, 1000)
-
-        return () => clearInterval(timer)
-    }, [])
-
-    useEffect(() => {
-        if (timeLeft <= 0) {
-            setScreen('leaderboard')
-        }
-    }, [timeLeft])
-    
+export default function Results({ question, playerAnswer, correctAnswer, totalScore, roundScore, playerName, roomCode, roundNumber, totalRounds } : ReactProps) {
     const percentage = Math.round((roundScore / 10) * 100)
     const circumference = 213.6
     const strokeOffset = circumference * (1 - percentage / 100)
@@ -122,7 +105,7 @@ export default function Results({ question, playerAnswer, correctAnswer, totalSc
 
             <div className="lobby-bottom-bar">
                 <p className="lobby-status-text flex-1 text-center">
-                    Next round in {timeLeft}s...
+                    Waiting for next round...
                 </p>
             </div>
         </main>

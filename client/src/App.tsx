@@ -17,6 +17,14 @@ type Player = {
     isHost: boolean
 }
 
+type LeaderboardEntry = {
+    name: string
+    score: number
+    rank: number
+    movement: number
+    roundScore: number
+}
+
 type FinalLeaderboardEntry = {
     name: string
     score: number
@@ -49,6 +57,8 @@ function App() {
         leaderboard: any
     } | null>(null)
 
+
+    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
     const [finalLeaderboard, setFinalLeaderboard] = useState<FinalLeaderboardEntry[]>([])
 
     useEffect(() => {
@@ -100,6 +110,11 @@ function App() {
             setScreen('results')
         })
 
+        socket.on('show_leaderboard', (data) => {
+            setLeaderboard(data.leaderboard)
+            setScreen('leaderboard')
+        })
+
         socket.on('game_over', (data) => {
             setFinalLeaderboard(data.finalLeaderboard)
             setScreen('game_over')
@@ -114,6 +129,7 @@ function App() {
             socket.off('game')
             socket.off('round_started')
             socket.off('round_results')
+            socket.off('show_leaderboard')
             socket.off('game_over')
         }
     }, [])
@@ -229,7 +245,6 @@ function App() {
             roomCode={roomCode}
             roundNumber={roundNumber}
             totalRounds={totalRounds}
-            setScreen={setScreen}
         />
     )
 
@@ -240,7 +255,6 @@ function App() {
             roundNumber={roundNumber}
             totalRounds={totalRounds}
             roomCode={roomCode}
-            setScreen={setScreen}
         />
     )
 
