@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react"
+
 type LeaderboardEntry = {
     name: string
     score: number
@@ -15,6 +17,15 @@ type LeaderboardProps = {
 }
 
 export default function Leaderboard ( {leaderboard, playerName, roundNumber, totalRounds, roomCode } : LeaderboardProps) {
+    const [timeLeft, setTimeLeft] = useState(5)
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft(prev => Math.max(0, prev - 1))
+        }, 1000)
+        return () => clearInterval(timer)
+    }, [])
+    
     return (
         <main className="min-h-screen w-full flex flex-col bg-[#0f172a]">
 
@@ -84,6 +95,10 @@ export default function Leaderboard ( {leaderboard, playerName, roundNumber, tot
                         </>
                     )
                 })()}
+                <div className="leaderboard-countdown">
+                    <p className="lobby-header-label">Next round in</p>
+                    <p className="text-white text-2xl font-black">{timeLeft}s</p>
+                </div>
             </div>
         </main>
     )

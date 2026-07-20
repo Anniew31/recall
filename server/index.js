@@ -72,14 +72,16 @@ async function endRound(roomCode, questionId) {
         scores: namedScores,
         question: rooms[roomCode].questions[rooms[roomCode].currentRound],
         playerResults,
-        leaderboard: currentRankings
+        leaderboard: currentRankings,
+        duration: 20000
     })
 
     rooms[roomCode].currentRound++
 
     setTimeout(() => {
         io.to(roomCode).emit('show_leaderboard', {
-            leaderboard: currentRankings
+            leaderboard: currentRankings,
+            duration: 8000
         })
 
         setTimeout(() => {

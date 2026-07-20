@@ -17,6 +17,14 @@ export default function Results({ question, playerAnswer, correctAnswer, totalSc
     const circumference = 213.6
     const strokeOffset = circumference * (1 - percentage / 100)
     const isGood = roundScore >= 7
+    const [timeLeft, setTimeLeft] = useState(15)
+
+    useEffect(() => {
+        const timer = setInterval(() => {
+            setTimeLeft(prev => Math.max(0, prev - 1))
+        }, 1000)
+        return () => clearInterval(timer)
+    }, [])
 
     return (
         <main className="min-h-screen w-full flex flex-col bg-[#0f172a]">
@@ -105,7 +113,7 @@ export default function Results({ question, playerAnswer, correctAnswer, totalSc
 
             <div className="lobby-bottom-bar">
                 <p className="lobby-status-text flex-1 text-center">
-                    Waiting for next round...
+                    Next up in {timeLeft}s...
                 </p>
             </div>
         </main>
