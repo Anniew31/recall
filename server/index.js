@@ -232,7 +232,7 @@ io.on('connection', (socket) => {
         }).length;
 
         io.to(data.roomCode).emit('submission_progress_update', {
-            finishedCount: finishedPlayersCount,
+            finishedPlayers: finishedPlayersCount,
             totalPlayers: totalPlayers
         });
 
