@@ -14,6 +14,15 @@ const io = new Server(httpServer, {
 const rooms = {}
 
 async function endRound(roomCode, questionId) {
+    const room = rooms[roomCode];
+    if (!room) return;
+    
+    // stop active timers
+    if (room.roundTimer) {
+        clearInterval(room.roundTimer);
+        room.roundTimer = null;
+    }
+
     // save previous rankings
     const previousRankings = Object.entries(rooms[roomCode].scores)
         .sort(([,a], [,b]) => b - a)
@@ -67,10 +76,24 @@ async function endRound(roomCode, questionId) {
             }
         })
 
+    // build player results object
     const playerResults = {}
+    rooms[roomCode].players.forEach(player => {
+        const answerText = rooms[roomCode].answers[player.id]
+        const rawScore = rooms[roomCode].scores[player.id] || 0
+        const prevScore = previousScores[player.id] || 0
+        playerResults[player.name] = {
+            answer: answerText || 'No answer submitted',
+            score: rawScore,
+            roundScore: rawScore - prevScore
+        }
+    })
+
+    const playedQuestion = rooms[roomCode].questions[rooms[roomCode].currentRound]
+
     io.to(roomCode).emit('round_results', {
         scores: namedScores,
-        question: rooms[roomCode].questions[rooms[roomCode].currentRound],
+        question: playedQuestion,
         playerResults,
         leaderboard: currentRankings,
         duration: 20000
@@ -78,6 +101,7 @@ async function endRound(roomCode, questionId) {
 
     rooms[roomCode].currentRound++
 
+    // show leaderboard after results
     setTimeout(() => {
         io.to(roomCode).emit('show_leaderboard', {
             leaderboard: currentRankings,
@@ -247,6 +271,12 @@ io.on('connection', (socket) => {
         const room = rooms[data.roomCode]
         if (!room) return
         room.answers[socket.id] = data.answer
+
+        if (Object.keys(room.answers).length == room.players.length) {
+            if (room.roundTimer) clearInterval(room.roundTimer)
+            const currentQuestion = room.questions[room.currentRound]
+            endRound(data.roomCode, currentQuestion.id)
+        }
     })
 })
 

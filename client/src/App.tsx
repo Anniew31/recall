@@ -104,6 +104,10 @@ function App() {
             setScreen('question_preview')
         })
 
+        socket.on('answers_all_submitted', () => {
+            setScreen('results')
+        })
+
         socket.on('round_results', (data) => {
             setRoundResults(data)
             setScore(prev => prev + (data.playerResults?.[playerNameRef.current]?.score || 0))
@@ -128,6 +132,7 @@ function App() {
             socket.off('setup_completed')
             socket.off('game')
             socket.off('round_started')
+            socket.off('answers_all_submitted')
             socket.off('round_results')
             socket.off('show_leaderboard')
             socket.off('game_over')
