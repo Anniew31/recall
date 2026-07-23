@@ -53,7 +53,7 @@ function App() {
     const [roundResults, setRoundResults] = useState<{
         scores: Record<string, number>,
         question: { id: string, questionText: string, correctAnswer: string },
-        playerResults: Record<string, { answer: string, score: number }>,
+        playerResults: Record<string, { answer: string, score: number, roundScore: number }>,
         leaderboard: any
     } | null>(null)
 
@@ -110,7 +110,7 @@ function App() {
 
         socket.on('round_results', (data) => {
             setRoundResults(data)
-            setScore(prev => prev + (data.playerResults?.[playerNameRef.current]?.score || 0))
+            setScore(data.playerResults[playerNameRef.current]?.score || 0)
             setScreen('results')
         })
 
@@ -244,7 +244,7 @@ function App() {
             question={roundResults?.question}
             playerAnswer={roundResults?.playerResults?.[playerName]?.answer ?? ''}
             correctAnswer={roundResults?.question?.correctAnswer ?? ''}
-            roundScore={roundResults?.playerResults?.[playerName]?.score ?? 0}
+            roundScore={roundResults.playerResults[playerName]?.roundScore ?? 0}
             totalScore={score}
             playerName={playerName}
             roomCode={roomCode}

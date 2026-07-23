@@ -114,7 +114,7 @@ async function endRound(roomCode, questionId) {
                     .sort(([,a], [,b]) => b - a)
                     .map(([socketId, score], index) => {
                         const player = rooms[roomCode].players.find(p => p.id === socketId)
-                        return { name: player?.name, score, rank: index + 1 }
+                        return { name: player?.name, score: score * 100, rank: index + 1 }
                     })
                 io.to(roomCode).emit('game_over', { finalLeaderboard })
             } else {
