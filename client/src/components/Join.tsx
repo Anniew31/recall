@@ -8,7 +8,7 @@ type JoinProps = {
     onJoin: (roomCode: string) => void
 }
 
-export default function Join({playerName, setScreen, onJoin}: JoinProps) {
+export default function Join({ setScreen, onJoin}: JoinProps) {
     const [roomCode, setRoomCode] = useState('')
     const [error, setError] = useState('')
 

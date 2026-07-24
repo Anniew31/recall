@@ -17,14 +17,6 @@ type Player = {
     isHost: boolean
 }
 
-type LeaderboardEntry = {
-    name: string
-    score: number
-    rank: number
-    movement: number
-    roundScore: number
-}
-
 type FinalLeaderboardEntry = {
     name: string
     score: number
@@ -57,8 +49,6 @@ function App() {
         leaderboard: any
     } | null>(null)
 
-
-    const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
     const [finalLeaderboard, setFinalLeaderboard] = useState<FinalLeaderboardEntry[]>([])
 
     useEffect(() => {
@@ -115,7 +105,6 @@ function App() {
         })
 
         socket.on('show_leaderboard', (data) => {
-            setLeaderboard(data.leaderboard)
             setScreen('leaderboard')
         })
 
@@ -214,7 +203,6 @@ function App() {
     if (screen === 'game') return (
         <Game
             roomCode={roomCode}
-            playerName={playerName}
             currentQuestion={currentQuestion}
             roundNumber={roundNumber}
             totalRounds={totalRounds}
@@ -266,8 +254,6 @@ function App() {
     if (screen === 'game_over') return (
         <GameOver
             finalLeaderboard={finalLeaderboard}
-            playerName={playerName}
-            roomCode={roomCode}
         />
     )
 

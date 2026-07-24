@@ -5,13 +5,12 @@ import TopBar from "./TopBar";
 
 type GameProps = {
     roomCode: string
-    playerName: string
     currentQuestion: { id: string, questionText: string }
     roundNumber: number
     totalRounds: number
 }
 
-export default function Game ({roomCode, playerName, currentQuestion, roundNumber, totalRounds }: GameProps) {
+export default function Game ({roomCode, currentQuestion, roundNumber, totalRounds }: GameProps) {
     const [timeLeft, setTimeLeft] = useState(60)
     const [answer, setAnswer] = useState('')
     const [submitted, setSubmitted] = useState(false)

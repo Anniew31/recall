@@ -1,6 +1,4 @@
 import { useEffect, useState } from "react"
-import TopBar from "./TopBar"
-import Error from "./Error"
 
 type QuestionPreviewProps = {
     roundNumber: number
@@ -12,9 +10,8 @@ type QuestionPreviewProps = {
     setScreen: (screen: 'home' | 'join' | 'lobby' | 'setup' | 'question_setup' | 'question_preview' | 'game') => void
 }
 
-export default function QuestionPreview({ roundNumber, currentQuestion, roomCode, playerName, score, setScreen, totalRounds}: QuestionPreviewProps) {
+export default function QuestionPreview({ roundNumber, currentQuestion, playerName, score, setScreen, totalRounds}: QuestionPreviewProps) {
     const [timeLeft, setTimeLeft] = useState(10)
-    const [error, setError] = useState('')
 
     useEffect(() => {
         const timer = setInterval(() => {

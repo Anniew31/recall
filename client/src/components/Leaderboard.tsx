@@ -16,7 +16,7 @@ type LeaderboardProps = {
     roomCode: string
 }
 
-export default function Leaderboard ( {leaderboard, playerName, roundNumber, totalRounds, roomCode } : LeaderboardProps) {
+export default function Leaderboard ( {leaderboard, playerName, roundNumber, totalRounds } : LeaderboardProps) {
     const [timeLeft, setTimeLeft] = useState(5)
 
     useEffect(() => {

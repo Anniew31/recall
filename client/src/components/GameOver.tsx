@@ -8,11 +8,9 @@ type FinalLeaderboardEntry = {
 
 type GameOverProps = {
     finalLeaderboard: FinalLeaderboardEntry[]
-    playerName: string
-    roomCode: string
 }
 
-export default function GameOver({ finalLeaderboard, playerName, roomCode }: GameOverProps) {
+export default function GameOver({ finalLeaderboard }: GameOverProps) {
     
     const firstPlace = finalLeaderboard.find(p => p.rank === 1);
     const secondPlace = finalLeaderboard.find(p => p.rank === 2);
