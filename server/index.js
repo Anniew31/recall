@@ -2,9 +2,9 @@ const express = require('express');
 const { createServer } = require('http');
 const { Server } = require('socket.io');
 
+const cors = require('cors')
 const app = express();
 
-const cors = require('cors')
 app.use(cors({
   origin: [
     "http://localhost:5173",
@@ -295,4 +295,9 @@ io.on('connection', (socket) => {
 
 httpServer.listen(3001, () => {
   console.log('server running on port 3001')
+})
+
+const PORT = process.env.PORT || 3001
+httpServer.listen(PORT, () => {
+  console.log(`server running on port ${PORT}`)
 })
