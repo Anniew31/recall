@@ -25,6 +25,7 @@ const io = new Server(httpServer, {
 });
 
 const rooms = {}
+const pythonUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000'
 
 async function endRound(roomCode, questionId) {
     const room = rooms[roomCode];
@@ -48,7 +49,7 @@ async function endRound(roomCode, questionId) {
     // grade answers and calcaluate scores
     for (const [socketId, answerText] of Object.entries(rooms[roomCode].answers)) {
         try {
-            const res = await fetch(`${import.meta.env.VITE_PYTHON_URL}/score-answer`, {
+            const res = await fetch(`${pythonUrl}/score-answer`, {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question_id: questionId, player_answer: answerText })
