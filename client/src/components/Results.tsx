@@ -12,7 +12,7 @@ type ReactProps = {
     totalRounds: number
 }
 
-export default function Results({ question, playerAnswer, correctAnswer, totalScore, roundScore, playerName, roomCode, roundNumber, totalRounds } : ReactProps) {
+export default function Results({ question, playerAnswer, correctAnswer, totalScore, roundScore, playerName, roundNumber, totalRounds } : ReactProps) {
     const percentage = Math.round((roundScore / 10) * 100)
     const circumference = 213.6
     const strokeOffset = circumference * (1 - percentage / 100)

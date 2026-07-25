@@ -104,7 +104,7 @@ function App() {
             setScreen('results')
         })
 
-        socket.on('show_leaderboard', (data) => {
+        socket.on('show_leaderboard', () => {
             setScreen('leaderboard')
         })
 
