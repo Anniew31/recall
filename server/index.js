@@ -6,20 +6,14 @@ const cors = require('cors')
 const app = express();
 
 app.use(cors({
-  origin: [
-    "http://localhost:5173",
-    "https://recall-tool.vercel.app"
-  ],
+  origin: "*",
   methods: ["GET", "POST"]
 }))
 
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: [
-        "https://recall-tool.vercel.app/",
-        "http://localhost:5173"
-    ],
+    origin: "*",
     methods: ["GET", "POST"]
   }
 });
