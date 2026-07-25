@@ -13,7 +13,11 @@ collection = client.get_or_create_collection("answers")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3001", "http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://recall-tool.vercel.app",
+        "https://server-production-8748.up.railway.app"
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -53,7 +53,7 @@ export default function QuestionSetup({questionCount, topic, notesText, playerNa
             playSubmit()
 
             const questionId = Math.random().toString(36).substring(2, 9)
-            const res = await fetch('http://localhost:8000/embed-answer', {
+            const res = await fetch(`${import.meta.env.VITE_PYTHON_URL}/embed-answer`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

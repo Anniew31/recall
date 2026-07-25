@@ -38,7 +38,7 @@ export default function Setup({isHost, roomCode, topic, setTopic, questionCount,
             const formData = new FormData()
             formData.append("file", file)
 
-            const res = await fetch(`http://localhost:8000/extract-text`, {
+            const res = await fetch(`${import.meta.env.VITE_PYTHON_URL}/extract-text`, {
                 method: "POST",
                 body: formData,
             })

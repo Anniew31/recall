@@ -6,7 +6,10 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
   cors: {
-    origin: "*",
+    origin: [
+        "https://recall-tool.vercel.app/",
+        "http://localhost:5173"
+    ],
     methods: ["GET", "POST"]
   }
 });
@@ -35,7 +38,7 @@ async function endRound(roomCode, questionId) {
     // grade answers and calcaluate scores
     for (const [socketId, answerText] of Object.entries(rooms[roomCode].answers)) {
         try {
-            const res = await fetch(`http://localhost:8000/score-answer`, {
+            const res = await fetch(`${import.meta.env.VITE_PYTHON_URL}/score-answer`, {
                 method: "POST",
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ question_id: questionId, player_answer: answerText })
