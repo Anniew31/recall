@@ -1,4 +1,4 @@
-# Recall 🧠
+# Recall
 
 A real-time multiplayer study game where players upload their notes, submit questions from the material, and race to answer them under a countdown timer. Answers are graded semantically using vector embeddings — partial credit for close answers, not just exact matches.
 
@@ -25,8 +25,6 @@ React + TypeScript + Tailwind CSS
 
 Docker Compose — local multi-service orchestration
 Vercel (client) + Railway (Node server + Python service)
-
----
 
 ## Architecture
 
