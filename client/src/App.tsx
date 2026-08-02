@@ -179,7 +179,7 @@ function App() {
         <Join playerName={playerName} setScreen={setScreen} onJoin={handleJoinRoom}></Join>
     )
     if (screen === 'lobby') return (
-        <Lobby players={players} roomCode={roomCode} isHost={isHost} onStart={handleStartGame}></Lobby>
+        <Lobby players={players} roomCode={roomCode} isHost={isHost} onStart={handleStartGame} setPlayerName={setPlayerName}></Lobby>
     )
     if (screen === 'setup') return (
         <Setup 

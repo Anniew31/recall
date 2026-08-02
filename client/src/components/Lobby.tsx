@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react"
 import Error from "./Error"
 import { startBackgroundMusic } from '../sounds'
+import socket from '../socket'
 
 type Player = {
     id: string
@@ -13,11 +14,12 @@ type LobbyProps = {
     roomCode: string
     isHost: boolean
     onStart: (roomCode: string) => void
+    setPlayerName: (name: string) => void
 }
 
 const AVATAR_COLORS = ['#4c1d95', '#10b981', '#0ea5e9', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16']
 
-export default function Lobby({players, roomCode, isHost, onStart }: LobbyProps) {
+export default function Lobby({players, roomCode, isHost, onStart, setPlayerName }: LobbyProps) {
     const [copied, setCopied] = useState(false)
     const [editingName, setEditingName] = useState(false)
     const [nameInput, setNameInput] = useState('')
@@ -36,6 +38,12 @@ export default function Lobby({players, roomCode, isHost, onStart }: LobbyProps)
     const handleStartGame = () => {
         if (!roomCode.trim()) return
         onStart(roomCode);
+    }
+
+    const handleChangeName = () => {
+        if (!nameInput.trim()) return
+        setPlayerName(nameInput)
+        socket.emit('change_name', { roomCode, newName: nameInput })
     }
 
     return (
@@ -109,25 +117,25 @@ export default function Lobby({players, roomCode, isHost, onStart }: LobbyProps)
                         ✏️ Edit Name
                     </button>
                 ) : (
-                    <div className="flex gap-2 w-full">
+                    <div className="flex gap-2 flex-1 items-center">
                         <input
                             type="text"
                             value={nameInput}
                             onChange={(e) => setNameInput(e.target.value)}
                             placeholder="New name..."
-                            className="game-input flex-1"
+                            className="name-edit-input"
                             autoFocus
                         />
                         <button
                             onClick={() => {
                                 if (!nameInput.trim()) return
-                                setError('Name change coming soon!')
+                                handleChangeName()
                                 setEditingName(false)
                                 setNameInput('')
                             }}
-                            className="btn-primary px-6"
+                            className="btn-save"
                         >
-                        Save
+                            Save
                         </button>
                         <button onClick={() => setEditingName(false)} className="btn-icon">✕</button>
                     </div>

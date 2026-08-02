@@ -286,6 +286,17 @@ io.on('connection', (socket) => {
             endRound(data.roomCode, currentQuestion.id)
         }
     })
+
+    socket.on('change_name', (data) => {
+        const room = rooms[data.roomCode]
+        if (!room) return
+        const player = room.players.find(p => p.id === socket.id)
+        if (player) {
+            player.name = data.newName
+            io.to(data.roomCode).emit('player_list_updated', room.players)
+        }
+    })
+
 })
 
 const PORT = process.env.PORT || 3001
