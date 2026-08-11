@@ -20,12 +20,12 @@ app.add_middleware(
 )
 
 def cosine_similarity(a, b):
-    a_flat = np.ravel(a)
-    b_flat = np.ravel(b)
+    a_arr = np.array(a, dtype=np.float32).flatten()
+    b_arr = np.array(b, dtype=np.float32).flatten()
     
-    dot_product = np.dot(a_flat, b_flat)
-    norm_a = np.linalg.norm(a_flat)
-    norm_b = np.linalg.norm(b_flat)
+    dot_product = np.dot(a_arr, b_arr)
+    norm_a = np.linalg.norm(a_arr)
+    norm_b = np.linalg.norm(b_arr)
     
     if norm_a == 0 or norm_b == 0:
         return 0.0
@@ -68,18 +68,20 @@ async def extract_text(file: UploadFile = File(...)):
 @app.post("/embed-answer")
 def embed_answer(input: AnswerInput):
     answer_embedding = model.encode(input.answer)
+    qid_str = str(input.question_id)
     collection.add(
         embeddings=[answer_embedding.tolist()],
         documents=[input.answer],
-        ids=[input.question_id]
+        ids=[qid_str]
     )
     return {"status": "ok"}
 
 @app.post("/score-answer")
 def score_answer(input: ScoreInput):
     try:
+        qid_str = str(input.question_id)
         result = collection.get(
-            ids=[input.question_id],
+            ids=[qid_str],
             include=["embeddings"]
         )
         
@@ -92,6 +94,7 @@ def score_answer(input: ScoreInput):
         player_embedding = model.encode(input.player_answer)
         similarity = cosine_similarity(correct_embedding, player_embedding)
         score = normalize_score(similarity)
+        print(score)
     
         return {"status": "ok", "score": score}
     except Exception as e:
