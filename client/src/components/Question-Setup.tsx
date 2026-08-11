@@ -63,7 +63,6 @@ export default function QuestionSetup({questionCount, topic, notesText, playerNa
                 questionId
             })
         } catch (err) {
-            setIsSubmitting(false);
             setError("Something went wrong submitting your question. Please try again.")
         }
     }
