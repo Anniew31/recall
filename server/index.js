@@ -21,15 +21,25 @@ const io = new Server(httpServer, {
 const rooms = {}
 const pythonUrl = process.env.PYTHON_SERVICE_URL || 'http://localhost:8000'
 
+// clear any exisiting timers
+function clearRoomTimers(room) {
+    if (room.roundTimer) {
+        clearInterval(room.roundTimer);
+        room.roundTimer = null;
+    }
+    if (room.phaseTimer) {
+        clearTimeout(room.phaseTimer);
+        room.phaseTimer = null;
+    }
+}
+
+
 async function endRound(roomCode, questionId) {
     const room = rooms[roomCode];
     if (!room) return;
     
     // stop active timers
-    if (room.roundTimer) {
-        clearInterval(room.roundTimer);
-        room.roundTimer = null;
-    }
+    clearRoomTimers(room);
 
     // save previous rankings
     const previousRankings = Object.entries(rooms[roomCode].scores)
@@ -42,6 +52,7 @@ async function endRound(roomCode, questionId) {
 
     // grade answers and calcaluate scores
     for (const [socketId, answerText] of Object.entries(rooms[roomCode].answers)) {
+        earnedScore = 0
         try {
             const res = await fetch(`${pythonUrl}/score-answer`, {
                 method: "POST",
@@ -51,6 +62,7 @@ async function endRound(roomCode, questionId) {
 
             if (!res.ok) {
                 console.error("Failed to score answer")
+                earnedScore = data.score || 0;
                 rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + 0
                 continue
             }
@@ -59,7 +71,10 @@ async function endRound(roomCode, questionId) {
             rooms[roomCode].scores[socketId] = (rooms[roomCode].scores[socketId] || 0) + data.score
         } catch (err) {
             console.log("Something went wrong grading.")
+            earnedScore = 0;
         }
+
+        room.scores[socketId] = (room.scores[socketId] || 0) + earnedScore;
     }
 
     const namedScores = {}
@@ -97,65 +112,86 @@ async function endRound(roomCode, questionId) {
         }
     })
 
-    const playedQuestion = rooms[roomCode].questions[rooms[roomCode].currentRound]
+    const playedQuestion = room.questions.find(q => q.id === questionId) || room.questions[room.currentRound] || {
+        id: questionId,
+        questionText: "Question",
+        correctAnswer: "N/A"
+    };
+
+    room.phase = 'results';
 
     io.to(roomCode).emit('round_results', {
         scores: namedScores,
         question: playedQuestion,
         playerResults,
         leaderboard: currentRankings,
-        duration: 20000
+        duration: 8000
     })
 
     rooms[roomCode].currentRound++
 
-    // show leaderboard after results
-    setTimeout(() => {
-        io.to(roomCode).emit('show_leaderboard', {
-            leaderboard: currentRankings,
-            duration: 8000
-        })
+    // show next phase transition after showing results for 10 seconds
+    room.phaseTimer = setTimeout(() => {
+        // Check if all rounds are completed
+        if (room.currentRound >= room.totalRounds) {
+            room.phase = 'game_over';
+            
+            // Build the final leaderboard data
+            const finalLeaderboard = Object.entries(room.scores)
+                .sort(([, a], [, b]) => b - a)
+                .map(([socketId, score], index) => {
+                    const player = room.players.find(p => p.id === socketId);
+                    return { 
+                        name: player?.name || "Player", 
+                        score: score, 
+                        rank: index + 1 
+                    };
+                });
+            
+            io.to(roomCode).emit('game_over', { finalLeaderboard });
 
-        setTimeout(() => {
-            if (rooms[roomCode].currentRound >= rooms[roomCode].totalRounds) {
-                const finalLeaderboard = Object.entries(rooms[roomCode].scores)
-                    .sort(([,a], [,b]) => b - a)
-                    .map(([socketId, score], index) => {
-                        const player = rooms[roomCode].players.find(p => p.id === socketId)
-                        return { name: player?.name, score: score * 100, rank: index + 1 }
-                    })
-                io.to(roomCode).emit('game_over', { finalLeaderboard })
-            } else {
-                startRound(roomCode)
-            }
-        }, 8000)
+        } else { // show round leaderboard
+            room.phase = 'leaderboard';
+            io.to(roomCode).emit('show_leaderboard', {
+                leaderboard: currentRankings,
+                duration: 6000
+            });
 
-    }, 20000)
+            room.phaseTimer = setTimeout(() => {
+                startRound(roomCode);
+            }, 6000);
+        }
+    }, 8000);
 }
 
 function startRound(roomCode) {
     const room = rooms[roomCode]
+    if (!room) return;
+    clearRoomTimers(room);
+
     const question = room.questions[room.currentRound]
     room.answers = {}
     let timeLeft = 60;
+    rooms[roomCode].timeLeft = timeLeft
 
     io.to(roomCode).emit('round_started', {
         question: question,
         roundNumber: room.currentRound + 1,
         totalRounds: room.totalRounds,
         timeLeft: timeLeft
-    });
+    })
 
-    setTimeout(() => {
-        room.roundTimer = setInterval(() => {
-            timeLeft--
-            io.to(roomCode).emit('timer_tick', { timeLeft })
-            if (timeLeft <= 0) {
-                clearInterval(room.roundTimer)
-                endRound(roomCode, question.id)
-            }
-        }, 1000)
-    }, 11000)
+    rooms[roomCode].phase = 'game'
+
+    room.roundTimer = setInterval(() => {
+        timeLeft--
+        rooms[roomCode].timeLeft = timeLeft
+        io.to(roomCode).emit('timer_tick', { timeLeft })
+        if (timeLeft <= 0) {
+            clearInterval(room.roundTimer)
+            endRound(roomCode, question.id)
+        }
+    }, 1000)
 }
 
 io.on('connection', (socket) => {
@@ -169,7 +205,9 @@ io.on('connection', (socket) => {
             totalRounds: 0,
             answers: {}, // {socketId: answerText }       
             scores: {}, // { playerName: totalScore }
-            roundTimer: null
+            roundTimer: null,
+            phase: 'lobby',
+            timeLeft: 0
         }
         rooms[roomCode].players.push({ id: socket.id, name: data.playerName, isHost: true })
         socket.join(roomCode)
@@ -178,6 +216,9 @@ io.on('connection', (socket) => {
     })
 
     socket.on('join_room', (data) => {
+        console.log('join_room received:', data)
+        console.log('room exists:', data.roomCode in rooms)
+        console.log('room phase:', rooms[data.roomCode]?.phase)
         if (!(data.roomCode in rooms)) {
             socket.emit('error', { message: 'Room not found' })
             return
@@ -185,7 +226,26 @@ io.on('connection', (socket) => {
         socket.join(data.roomCode)
         rooms[data.roomCode].players.push({ id: socket.id, name: data.playerName, isHost: false })
         io.to(data.roomCode).emit('player_list_updated', rooms[data.roomCode].players)
-        socket.emit('room_joined', { roomCode: data.roomCode })
+
+        if (['lobby', 'setup'].includes(rooms[data.roomCode].phase)) {
+            socket.emit('room_joined', { 
+                roomCode: data.roomCode,
+                phase: rooms[data.roomCode].phase
+            })
+        } else {
+            const room = rooms[data.roomCode]
+            socket.emit('room_joined', { 
+                roomCode: data.roomCode,
+                phase: rooms[data.roomCode].phase,
+                topic: room.topic,
+                questionCount: room.questionCount,
+                notesText: room.notesText,
+                scores: room.scores,
+                currentRound: room.currentRound,
+                totalRounds: room.totalRounds,
+                currentQuestion: room.questions[room.currentRound]
+            })
+        }
     })
 
     socket.on('disconnect', () => {
@@ -212,6 +272,7 @@ io.on('connection', (socket) => {
 
     socket.on('game_setup_started', (data) => {
         io.to(data.roomCode).emit('game_setup_started')
+        rooms[data.roomCode].phase = 'setup'
     })
 
     socket.on('game_configured', (data) => {
@@ -230,8 +291,9 @@ io.on('connection', (socket) => {
         io.to(data.roomCode).emit('setup_completed', {
             topic: rooms[data.roomCode].topic,
             questionCount: rooms[data.roomCode].questionCount,
-            notesText: rooms[data.roomCode].notesText
+            notesText: rooms[data.roomCode].notesText,
         })
+        rooms[data.roomCode].phase = 'question_setup'
     })
 
     socket.on('submit_question', (data) => {
@@ -243,7 +305,7 @@ io.on('connection', (socket) => {
             player: data.playerName,
             playerId: socket.id,
             questionText: data.questionText,
-            correctAnswer: data.correctAnswer
+            correctAnswer: data.correctAnswer || "N/A"
         };
         room.questions.push(newQuestion);
 
@@ -269,9 +331,10 @@ io.on('connection', (socket) => {
         });
 
         if (finishedPlayersCount === totalPlayers) {
-            room.totalRounds = room.questions.length
+            room.totalRounds = room.questionCount || room.questions.length
             io.to(data.roomCode).emit('all_questions_ready')
             setTimeout(() => startRound(data.roomCode), 3000)
+            rooms[data.roomCode].phase = 'question_preview'
         }
     })
 

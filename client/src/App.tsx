@@ -68,7 +68,26 @@ function App() {
 
         socket.on('room_joined', (data) => {
             setRoomCode(data.roomCode)
-            setScreen('lobby')
+            
+            if (data.phase === 'lobby' || data.phase === 'setup') {
+                setScreen('lobby')
+            } else if (data.phase === 'question_setup') {
+                setTopic(data.topic)
+                setQuestionCount(data.questionCount)
+                setNotesText(data.notesText)
+                setScreen('question_setup')
+            } else if (data.phase === 'game') {
+                setCurrentQuestion(data.currentQuestion)
+                setRoundNumber(data.currentRound + 1)
+                setTotalRounds(data.totalRounds)
+                setTopic(data.topic)
+                setNotesText(data.notesText)
+                setScreen('question_preview')
+            } else if (data.phase === 'results') {
+                setScreen('results')
+            } else if (data.phase === 'leaderboard') {
+                setScreen('leaderboard')
+            }
         })
 
         socket.on('game_setup_started', () => {
@@ -94,17 +113,21 @@ function App() {
             setScreen('question_preview')
         })
 
-        socket.on('answers_all_submitted', () => {
-            setScreen('results')
-        })
-
         socket.on('round_results', (data) => {
             setRoundResults(data)
             setScore(data.playerResults[playerNameRef.current]?.score || 0)
             setScreen('results')
         })
 
-        socket.on('show_leaderboard', () => {
+        socket.on('show_leaderboard', (data) => {
+            if (data && data.leaderboard) {
+                setRoundResults(prev => prev ? { ...prev, leaderboard: data.leaderboard } : {
+                    scores: {},
+                    question: { id: '', questionText: '', correctAnswer: '' },
+                    playerResults: {},
+                    leaderboard: data.leaderboard
+                })
+            }
             setScreen('leaderboard')
         })
 
@@ -221,11 +244,15 @@ function App() {
         />
     )
 
-    if (!roundResults || !roundResults.question) return (
-        <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
-            <p className="text-white">Loading results...</p>
-        </div>
-    )
+    if (!roundResults || !roundResults.question) {
+        console.log(roundResults)
+        console.log(roundResults?.question)
+        return (
+            <div className="min-h-screen bg-[#0f172a] flex items-center justify-center">
+                <p className="text-white">Loading results...</p>
+            </div>
+        )
+    }
 
     if (screen === 'results' && roundResults) return (
         <Results
