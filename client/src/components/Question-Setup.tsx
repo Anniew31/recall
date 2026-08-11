@@ -53,30 +53,17 @@ export default function QuestionSetup({questionCount, topic, notesText, playerNa
             playSubmit()
 
             const questionId = Math.random().toString(36).substring(2, 9)
-            const res = await fetch(`${import.meta.env.VITE_PYTHON_URL}/embed-answer`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    question_id: questionId,
-                    question: questionText,
-                    answer: correctAnswer
-                })
-            })
-
-            if (!res.ok) {
-                setError("Failed to store question embedding.")
-                return
-            }
 
             socket.emit('submit_question', {
                 roomCode,
                 notesText,
                 playerName,
-                questionText,
-                correctAnswer,
+                questionText: questionText.trim(),
+                correctAnswer: correctAnswer.trim(),
                 questionId
             })
         } catch (err) {
+            setIsSubmitting(false);
             setError("Something went wrong submitting your question. Please try again.")
         }
     }

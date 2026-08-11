@@ -33,7 +33,6 @@ function clearRoomTimers(room) {
     }
 }
 
-
 async function endRound(roomCode, questionId) {
     const room = rooms[roomCode];
     if (!room) return;
@@ -296,12 +295,34 @@ io.on('connection', (socket) => {
         rooms[data.roomCode].phase = 'question_setup'
     })
 
-    socket.on('submit_question', (data) => {
+    socket.on('submit_question', async (data) => {
         const room = rooms[data.roomCode];
         if (!room) return;
+        
+        try {
+            const res = await fetch(`${pythonUrl}/embed-answer`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    question_id: String(data.questionId),
+                    question: data.questionText,
+                    answer: data.correctAnswer
+                })
+            });
+
+            if (!res.ok) {
+                console.error("Failed to embed answer/question in Python service");
+                socket.emit('error', { message: "Failed to store answer/question embedding" });
+                return;
+            }
+        } catch (err) {
+            console.error("Error communicating with Python service:", err);
+            socket.emit('error', { message: "Service unreachable" });
+            return;
+        }
 
         const newQuestion = {
-            id: data.questionId,
+            id: String(data.questionId),
             player: data.playerName,
             playerId: socket.id,
             questionText: data.questionText,
